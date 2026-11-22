@@ -6,14 +6,23 @@ A **native Android icon-pack app** featuring 637 ultra-glossy, translucent icons
 
 1. Open the [GitHub Actions build page](https://github.com/Wayudiesa24/LiquidGlassIcons/actions/workflows/build-apk.yml).
 2. Open the most recent successful **Build Android APK** run.
-3. Under **Artifacts**, download `LiquidGlassIcons-v2-APK`.
+3. Under **Artifacts**, download `LiquidGlassIcons-v2.0.1-SmartLauncher-APK`.
 4. Extract the artifact ZIP and install `app-debug.apk` on your Android phone.
 
 This is an Android **debug-signed APK** for personal testing, not a Play Store release. Android 8.0 or later is required.
 
-## Apply with Smart Launcher
+## Apply with Smart Launcher 6 (v2.0.1 fix)
 
-Install the APK, then open Smart Launcher settings and find its icon pack/theme selector. Select **Liquid Glass Icons**, if Smart Launcher recognizes the installed pack. Specific icon replacement requires a launcher that supports the app-filter format and matches the installed activity component names. Some icons may remain unchanged because only 117 activity mappings are predefined. You can use **Glassify My Installed Apps** to export extra transparent PNGs, then assign them to individual apps where your launcher supports custom icons.
+**The v2.0.0 APK omitted Smart Launcher's required `ginlemon.smartlauncher.THEMES` discovery intent**, so Smart Launcher 6 could not find it even though the app gallery could open. v2.0.1 declares the required Smart Launcher action, ADW theme aliases, and Nova icon-pack actions; GitHub Actions verifies the final APK contains the Smart Launcher discovery action.
+
+1. Install the latest **v2.0.1** APK.
+2. Open **Smart Launcher → Settings → Global appearance → Icon appearance → Icon pack** (settings labels may vary).
+3. Select **Liquid Glass Icons** from the installed packs.
+4. If the pack does not appear immediately, close and reopen Smart Launcher. Do **not** clear Smart Launcher's storage/data (which could reset your layout).
+
+**Debug APK update caveat:** The GitHub hosted builder signs each run with its own debug key. If Android says an update cannot be installed, uninstall the **older Liquid Glass Icons** app first, then install v2.0.1. This affects only the icon pack app, not Smart Launcher. The app is local-first, but uninstalling could remove internal app settings; export any manually glassified PNGs before uninstalling.
+
+Automatic replacement still depends on supported activity mappings. The gallery includes 637 designs; only 117 explicit activity mappings are defined. For unrecognized installed apps, use Glassify My Installed Apps and assign exported PNGs manually where Smart Launcher supports it.
 
 ## Build from source — no uploads required
 
