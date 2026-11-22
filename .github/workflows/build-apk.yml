@@ -8,6 +8,7 @@ on:
       - 'source/liquidglass-compact-v2.b64'
       - 'source/glass-overlays.b64'
       - '.github/workflows/build-apk.yml'
+      - 'patches/**'
 
 permissions:
   contents: read
@@ -34,6 +35,25 @@ jobs:
           test -f app/src/main/AndroidManifest.xml
           test -f app/src/main/java/com/wayudiesa/liquidglass/MainActivity.java
           test -f app/src/main/res/drawable-nodpi/iconupon.png
+
+      - name: Apply Smart Launcher 6 compatibility patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp patches/AndroidManifest.xml app/src/main/AndroidManifest.xml
+          cp patches/app-build.gradle app/build.gradle
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("app/src/main/AndroidManifest.xml").getroot()
+          ns = "{http://schemas.android.com/apk/res/android}"
+          wanted = {"ginlemon.smartlauncher.THEMES", "org.adw.launcher.THEMES", "org.adw.ActivityStarter.THEMES"}
+          found = {node.get(ns+"name") for node in root.iter("action")}
+          assert wanted <= found, "Smart Launcher discovery filters are missing"
+          activities = list(root.iter("activity"))
+          assert any(a.get(ns+"name") == ".MainActivity" and a.get(ns+"exported") == "true" for a in activities)
+          print("Verified Smart Launcher and ADW discovery actions")
+          PY
+          grep -q 'versionCode 21' app/build.gradle
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -71,6 +91,16 @@ jobs:
       - name: Assemble Android debug APK
         run: gradle --no-daemon --stacktrace :app:assembleDebug
 
+      - name: Verify compiled APK announces Smart Launcher theme support
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump xmltree "$APK" AndroidManifest.xml > /tmp/compiled-manifest.txt
+          grep -F 'ginlemon.smartlauncher.THEMES' /tmp/compiled-manifest.txt
+          grep -F 'org.adw.launcher.THEMES' /tmp/compiled-manifest.txt
+          echo "Compiled APK includes Smart Launcher 6 discovery action"
+
       - name: Verify APK and checksum
         shell: bash
         run: |
@@ -82,7 +112,7 @@ jobs:
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: LiquidGlassIcons-v2-APK
+          name: LiquidGlassIcons-v2.0.1-SmartLauncher-APK
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/debug/SHA256SUMS.txt
